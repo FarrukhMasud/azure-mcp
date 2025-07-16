@@ -27,7 +27,17 @@ internal class Program
             {
                 builder.ConfigureOpenTelemetryLogger();
                 builder.AddConsole();
-                builder.SetMinimumLevel(LogLevel.Information);
+
+                // Allow configuring log level via environment variable
+                var logLevelEnv = Environment.GetEnvironmentVariable("AZURE_MCP_LOG_LEVEL");
+                var logLevel = LogLevel.Debug; // Default
+
+                if (!string.IsNullOrEmpty(logLevelEnv) && Enum.TryParse<LogLevel>(logLevelEnv, true, out var parsedLevel))
+                {
+                    logLevel = parsedLevel;
+                }
+
+                builder.SetMinimumLevel(logLevel);
             });
 
             var serviceProvider = services.BuildServiceProvider();
@@ -77,6 +87,7 @@ internal class Program
             new AzureMcp.Areas.Storage.StorageSetup(),
             new AzureMcp.Areas.BicepSchema.BicepSchemaSetup(),
             new AzureMcp.Areas.AzureTerraformBestPractices.AzureTerraformBestPracticesSetup(),
+            new AzureMcp.Areas.DataAgent.DataAgentSetup(),
         ];
     }
 
